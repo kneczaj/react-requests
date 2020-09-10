@@ -32,3 +32,13 @@ export function mergeStates<T>(
     }, {} as { [K in keyof T]: T[K] })
   }
 }
+
+export function selectState<TIn, TOut>(
+  input: ItemRequestState<TIn>,
+  selector: (data: TIn) => TOut
+): ItemRequestState<TOut> {
+  return {
+    ...input,
+    data: isNull(input.data) ? null : selector(input.data)
+  }
+}
