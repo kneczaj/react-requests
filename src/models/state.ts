@@ -1,11 +1,12 @@
 import { PaginationBase } from "./pagination";
+import { Errors } from "./errors";
 
-export interface RequestStateBase<TData, TError> {
+export interface RequestStateBase<TData> {
   loading: boolean;
   data: TData;
-  error: TError | null;
+  error: Errors | null;
 }
 
-export interface ItemRequestState<TData, TError> extends RequestStateBase<TData | null, TError>{}
-export interface ListRequestState<TData, TError> extends RequestStateBase<TData[], TError> {}
-export interface PaginationRequestState<TData, TError> extends ListRequestState<TData, TError>, PaginationBase {}
+export interface ItemRequestState<TData> extends RequestStateBase<TData | null>{}
+export interface ListRequestState<TData> extends RequestStateBase<TData[]> {}
+export interface PaginationRequestState<TData> extends ListRequestState<TData>, PaginationBase {}

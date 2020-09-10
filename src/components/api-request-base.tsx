@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Hook as StateHook, useState } from "../../hooks/state";
 import { RequestStateBase } from "../models/state";
 
-export interface Props<TData, TResponseData, TError, TState extends RequestStateBase<TData, TError>> {
+export interface Props<TData, TResponseData, TError, TState extends RequestStateBase<TData>> {
   children: (state: TState) => any;
   requestFn: () => Promise<TResponseData>;
   /**
@@ -19,7 +19,7 @@ export interface Props<TData, TResponseData, TError, TState extends RequestState
   onStart: () => void;
 }
 
-export function ApiRequestBase<TData, TResponseData, TError, TState extends RequestStateBase<any, TError> >({
+export function ApiRequestBase<TData, TResponseData, TError, TState extends RequestStateBase<any> >({
   children,
   onSuccess,
   onFailure,

@@ -1,16 +1,17 @@
 import React, { useEffect } from "react";
-import { RequestResult } from "./request-result";
+import { RequestWrapper, Props as RequestWrapperProps } from "../request-wrapper";
 import { useApiRequest } from "../hooks/api-request";
 
 export interface ChildrenProps<TData> {
+  className?: string;
   data: TData;
   onChange: (val: TData) => void;
 }
 
-export interface Props<TData, TQueryParams, TError> {
+export interface Props<TData, TNoData, TQueryParams> extends Omit<RequestWrapperProps<TData, TNoData>, 'children' | 'state'> {
   children: (props: ChildrenProps<TData>) => any;
-  requestFn: (params: TQueryParams) => Promise<TData>;
-  initialData: TData;
+  requestFn: (params: TQueryParams) => Promise<TData | TNoData>;
+  initialData: TData | TNoData;
   /**
    * the value will be kept initial until isActive gets true
    */
@@ -21,21 +22,29 @@ export interface Props<TData, TQueryParams, TError> {
   queryParams: TQueryParams;
 }
 
-export function ApiRequest<TData, TQueryParams, TError = any>({ children, initialData, isActive, requestFn, queryParams }: Props<TData, TQueryParams, TError>) {
+export function ApiRequest<TData, TQueryParams = void, TNoData = null>({
+  children,
+  initialData,
+  isActive,
+  requestFn,
+  queryParams,
+  ...rest
+}: Props<TData, TNoData, TQueryParams>) {
 
-  const { state, onChange, updateRequestState } = useApiRequest<TData, TQueryParams, TError>({
+  const { state, onChange, updateRequestState } = useApiRequest<TData, TQueryParams, TNoData>({
     isActive,
     requestFn,
     initialData
   });
 
-  useEffect(() => updateRequestState(isActive, queryParams), [isActive, queryParams]);
+  useEffect(() => updateRequestState(isActive, queryParams), [isActive, queryParams, updateRequestState]);
 
   return (
-    <RequestResult
-      request={state}
+    <RequestWrapper<TData, TNoData>
+      state={state}
+      {...rest}
     >
-      {(data: TData) => children({ data, onChange })}
-    </RequestResult>
+      {({ data, className }) => children({ className, data, onChange })}
+    </RequestWrapper>
   );
 }

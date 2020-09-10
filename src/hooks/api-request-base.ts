@@ -1,33 +1,34 @@
 import { useState } from "../../hooks/state";
 import { useCallback } from "react";
 
-export interface Props<TResponseData, TQueryParams, TError> {
+export interface Props<TResponseData, TQueryParams> {
   requestFn: (params: TQueryParams) => Promise<TResponseData>;
   onSuccess: (data: TResponseData) => void;
-  onFailure: (error: TError) => void;
+  onFailure: (error: any) => void;
   onStart: () => void;
 }
 
-export function useApiRequestBase<TResponseData, TQueryParams, TError>({
+export function useApiRequestBase<TResponseData, TQueryParams>({
   onSuccess,
   onFailure,
   onStart,
   requestFn
-}: Props<TResponseData, TQueryParams, TError>): (isActive: boolean, queryParams: TQueryParams) => void {
+}: Props<TResponseData, TQueryParams>): (isActive: boolean, queryParams: TQueryParams) => void {
   const wasActive = useState<boolean | undefined>(undefined);
   const oldToken = useState<string | undefined>(undefined);
 
-  async function makeRequest(queryParams: TQueryParams) {
+  const makeRequest = useCallback(async (queryParams: TQueryParams) => {
     try {
       const result = await requestFn(queryParams);
       onSuccess(result);
     } catch (error) {
+      console.log(error)
       if (error.status === 401) {
         throw error;
       }
       onFailure(error);
     }
-  }
+  }, [onFailure, onSuccess, requestFn]);
 
   return useCallback((isActive: boolean, queryParams: TQueryParams) => {
     const token = JSON.stringify(queryParams);
@@ -37,5 +38,5 @@ export function useApiRequestBase<TResponseData, TQueryParams, TError>({
     }
     wasActive.set(isActive);
     oldToken.set(token);
-  }, [oldToken.value, wasActive.value])
+  }, [makeRequest, oldToken, onStart, wasActive])
 }

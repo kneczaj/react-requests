@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Pagination } from "../models/pagination";
-import { PaginationRequestResult } from "./pagination-request-result";
+import { PaginationRequestWrapper } from "../request-wrapper";
 import { useApiRequestPagination } from "../hooks/api-request-pagination";
 
 export interface ChildrenProps<TData> {
@@ -8,6 +8,7 @@ export interface ChildrenProps<TData> {
   loadMore: () => void;
   loading: boolean;
   hasMore: boolean;
+  className?: string;
 }
 
 export interface Props<TData, TError> {
@@ -36,8 +37,8 @@ export function ApiPaginationRequest<TData, TError = any>({ children, initialDat
   useEffect(() => updateRequestState(isActive, token), [isActive, token]);
 
   return (
-    <PaginationRequestResult request={state}>{
-      (data: TData[]) => children({data, loadMore, loading: state.loading, hasMore})
-    }</PaginationRequestResult>
+    <PaginationRequestWrapper state={state}>{
+      ({ data, className }) => children({className, data, loadMore, loading: state.loading, hasMore})
+    }</PaginationRequestWrapper>
   );
 }

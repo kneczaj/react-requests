@@ -2,18 +2,19 @@ import { useContext, useMemo } from "react";
 import { useState } from "../../hooks/state";
 import { PaginationRequestState } from "../models/state";
 import { useApiRequestBase } from "./api-request-base";
-import { deserialize as paginationDeserialize, Pagination } from "../models/pagination";
+import { deserialize as paginationDeserialize, Pagination, PaginationPayload } from "../models/pagination";
 import { RequestContext } from "../../utils/axios";
 import { isNull } from "../../util";
+import { makeRequestError } from "../models/errors";
 
-export interface Hook<TData, TQueryParams, TError> {
-  state: PaginationRequestState<TData, TError>;
+export interface Hook<TData, TQueryParams> {
+  state: PaginationRequestState<TData>;
   updateRequestState: (isActive: boolean, queryParams: TQueryParams) => void;
   loadMore: () => void;
   hasMore: boolean;
 }
 
-export interface Props<TData, TRequestData, TQueryParams, TError> {
+export interface Props<TData, TRequestData, TQueryParams> {
   requestFn: (params: TQueryParams) => Promise<Pagination<TRequestData>>;
   initialData: TData[];
   /**
@@ -24,15 +25,15 @@ export interface Props<TData, TRequestData, TQueryParams, TError> {
   deserialize: (data: TRequestData) => TData;
 }
 
-export function useApiRequestPagination<TData, TRequestData, TQueryParams, TError = any>({
+export function useApiRequestPagination<TData, TRequestData, TQueryParams>({
   deserialize,
   initialData,
   isActive,
   onStart: onStartBase,
   requestFn
-}: Props<TData, TRequestData, TQueryParams, TError>): Hook<TData, TQueryParams, TError> {
+}: Props<TData, TRequestData, TQueryParams>): Hook<TData, TQueryParams> {
   const request = useContext(RequestContext);
-  const requestState = useState<PaginationRequestState<TData, TError>>({
+  const requestState = useState<PaginationRequestState<TData>>({
     loading: isActive,
     data: initialData,
     error: null,
@@ -52,8 +53,8 @@ export function useApiRequestPagination<TData, TRequestData, TQueryParams, TErro
       loading: true
     });
     try {
-      const response = await request.get(requestState.value.nextUrl, undefined);
-      const { data, ...rest } = paginationDeserialize<TRequestData>(response.data);
+      const response = await request.get<PaginationPayload<TRequestData>>(requestState.value.nextUrl, undefined);
+      const { data, ...rest } = paginationDeserialize<TRequestData>(response);
       requestState.set({
         ...requestState.value,
         ...rest,
@@ -72,7 +73,6 @@ export function useApiRequestPagination<TData, TRequestData, TQueryParams, TErro
   function onStart() {
     requestState.set({
       ...requestState.value,
-      data: initialData,
       loading: true
     });
     onStartBase && onStartBase();
@@ -88,9 +88,9 @@ export function useApiRequestPagination<TData, TRequestData, TQueryParams, TErro
       nextUrl: data.nextUrl,
       previousUrl: data.previousUrl
     }),
-    onFailure: (error: TError) => requestState.set({
+    onFailure: (error: any) => requestState.set({
       ...requestState.value,
-      error,
+      error: makeRequestError(error),
       loading: false,
       count: 0,
       nextUrl: null,

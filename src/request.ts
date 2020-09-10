@@ -2,7 +2,7 @@ import { isUndefined, WithId } from "../util";
 import { Pagination } from "./models/pagination";
 import { RequestStateBase, PaginationRequestState } from "./models/state";
 
-export function getRequestInitialState<T>(val: RequestStateBase<T, any>['data']): RequestStateBase<T, any> {
+export function getRequestInitialState<T>(val: RequestStateBase<T>['data']): RequestStateBase<T> {
   return {
     loading: false,
     error: null,
@@ -55,7 +55,7 @@ export class Request<RequestPayload, ResponsePayload, TError> {
     payload
   });
 
-  reducer(state: RequestStateBase<any, TError> | PaginationRequestState<any, TError>, action: any): RequestStateBase<any, TError> | PaginationRequestState<any, TError> {
+  reducer(state: RequestStateBase<any> | PaginationRequestState<any>, action: any): RequestStateBase<any> | PaginationRequestState<any> {
     switch (action.type) {
       case this.requestActionType:
         return {
@@ -92,7 +92,7 @@ export class Request<RequestPayload, ResponsePayload, TError> {
           error: null,
           data: currentState.data.concat(data.filter(item => isUndefined(currentState.data.find(existing => existing.id === item.id)))),
           ...rest
-        } as PaginationRequestState<WithId<any>, TError>;
+        } as PaginationRequestState<WithId<any>>;
       default:
         return state;
     }

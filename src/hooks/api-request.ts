@@ -1,25 +1,26 @@
 import { useState } from "../../hooks/state";
 import { RequestStateBase } from "../models/state";
 import { useApiRequestBase } from "./api-request-base";
+import { makeRequestError } from "../models/errors";
 
-export interface Hook<TData, TQueryParams, TError> {
-  state: RequestStateBase<TData, TError>;
+export interface Hook<TData, TQueryParams, TNoData> {
+  state: RequestStateBase<TData | TNoData>;
   onChange: (val: TData) => void;
   updateRequestState: (isActive: boolean, queryParams: TQueryParams) => void;
 }
 
-export interface Props<TData, TQueryParams, TError> {
-  requestFn: (params: TQueryParams) => Promise<TData>;
-  initialData: TData;
+export interface Props<TData, TNoData, TQueryParams> {
+  requestFn: (params: TQueryParams) => Promise<TData | TNoData>;
+  initialData: TData | TNoData;
   isActive: boolean;
 }
 
-export function useApiRequest<TData, TQueryParams, TError = any>({
+export function useApiRequest<TData, TQueryParams, TNoData = null>({
   initialData,
   isActive,
-  requestFn
-}: Props<TData, TQueryParams, TError>): Hook<TData, TQueryParams, TError> {
-  const requestState = useState<RequestStateBase<TData, TError>>({
+  requestFn,
+}: Props<TData, TNoData, TQueryParams>): Hook<TData, TQueryParams, TNoData> {
+  const requestState = useState<RequestStateBase<TData | TNoData>>({
     loading: isActive,
     data: initialData,
     error: null
@@ -40,9 +41,9 @@ export function useApiRequest<TData, TQueryParams, TError = any>({
       data,
       error: null
     }),
-    onFailure: (error: TError) => requestState.set({
+    onFailure: (error: any) => requestState.set({
       ...requestState.value,
-      error,
+      error: makeRequestError(error),
       loading: false
     }),
     requestFn
