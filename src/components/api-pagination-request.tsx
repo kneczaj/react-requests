@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { Pagination } from "../models/pagination";
 import { PaginationRequestWrapper } from "../request-wrapper";
 import { useApiRequestPagination } from "../hooks/api-request-pagination";
+import { WithId } from "../../util";
 
-export interface ChildrenProps<TData> {
+export interface ChildrenProps<TId, TData extends WithId<any, TId>> {
   data: TData[];
   loadMore: () => void;
   loading: boolean;
@@ -11,8 +12,8 @@ export interface ChildrenProps<TData> {
   className?: string;
 }
 
-export interface Props<TData, TError> {
-  children: (props: ChildrenProps<TData>) => any;
+export interface Props<TId, TData extends WithId<any, TId>> {
+  children: (props: ChildrenProps<TId, TData>) => any;
   requestFn: () => Promise<Pagination<TData>>;
   initialData: TData[];
   /**
@@ -24,17 +25,18 @@ export interface Props<TData, TError> {
    */
   token?: string;
   onStart?: () => void;
+  loadMoreRequestFn: (url: string) => Promise<Pagination<TData>>;
 }
 
-export function ApiPaginationRequest<TData, TError = any>({ children, initialData, isActive, onStart,requestFn, token }: Props<TData, TError>) {
+export function ApiPaginationRequest<TId, TData extends WithId<any, TId>>({ children, initialData, isActive, loadMoreRequestFn, onStart, requestFn, token }: Props<TId, TData>) {
   const {
     state,
     updateRequestState,
     loadMore,
     hasMore
-  } = useApiRequestPagination({ initialData, isActive, requestFn, onStart, deserialize: val => val });
+  } = useApiRequestPagination({ initialData, isActive, requestFn, onStart, loadMoreRequestFn });
 
-  useEffect(() => updateRequestState(isActive, token), [isActive, token]);
+  useEffect(() => updateRequestState(isActive, token), [isActive, token, updateRequestState]);
 
   return (
     <PaginationRequestWrapper state={state}>{

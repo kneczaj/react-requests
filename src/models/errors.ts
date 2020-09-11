@@ -1,4 +1,5 @@
 import { isUndefined } from "../../util";
+import { isAuthorisationError } from "../../utils/axios";
 
 export class ErrorResponse extends Error {
 }
@@ -22,15 +23,15 @@ export class ValidationError extends ErrorResponse {
   }
 }
 
-/**
- * Errors to be shown to user
- */
-export interface Errors {
-  messages: string[];
-}
-
 export function makeRequestError(error: any): Errors {
   return {
     messages: [error.request.statusText]
   };
+}
+
+export const getPassAuthorizationError = <TReturnData>(returnVal: TReturnData) => (error: any) => {
+  if (isAuthorisationError(error)) {
+    return returnVal;
+  }
+  return null;
 }

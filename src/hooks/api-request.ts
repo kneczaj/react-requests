@@ -7,6 +7,7 @@ export interface Hook<TData, TQueryParams, TNoData> {
   state: RequestStateBase<TData | TNoData>;
   onChange: (val: TData) => void;
   updateRequestState: (isActive: boolean, queryParams: TQueryParams) => void;
+  reset: () => void;
 }
 
 export interface Props<TData, TNoData, TQueryParams> {
@@ -30,6 +31,14 @@ export function useApiRequest<TData, TQueryParams, TNoData = null>({
     requestState.set({ ...requestState.value, data: val });
   }
 
+  function reset() {
+    requestState.set({
+      loading: false,
+      data: initialData,
+      error: null
+    });
+  }
+
   const updateRequestState = useApiRequestBase({
     onStart: () => requestState.set({
       ...requestState.value,
@@ -38,7 +47,7 @@ export function useApiRequest<TData, TQueryParams, TNoData = null>({
     }),
     onSuccess: (data) => requestState.set({
       loading: false,
-      data,
+      data: data,
       error: null
     }),
     onFailure: (error: any) => requestState.set({
@@ -52,6 +61,7 @@ export function useApiRequest<TData, TQueryParams, TNoData = null>({
   return {
     state: requestState.value,
     onChange,
-    updateRequestState
+    updateRequestState,
+    reset
   };
 }
