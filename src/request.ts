@@ -27,6 +27,7 @@ export class Request<RequestPayload, ResponsePayload, TError> {
   public readonly errorActionType = `${this.type}_ERROR`;
   public readonly responseActionType = `${this.type}_RESPONSE`;
   public readonly addActionType = `${this.type}_ADD_RESPONSE`;
+  public readonly setInProgressType = `${this.type}_SET_IN_PROGRESS`;
 
   request = (payload?: RequestPayload) => {
     return {
@@ -53,6 +54,11 @@ export class Request<RequestPayload, ResponsePayload, TError> {
   addResponse = (payload: ResponsePayload) => ({
     type: this.addActionType,
     payload
+  });
+
+  setInProgress = (value: boolean) => ({
+    type: this.setInProgressType,
+    value
   });
 
   reducer(state: RequestStateBase<any> | PaginationRequestState<any>, action: any): RequestStateBase<any> | PaginationRequestState<any> {
@@ -82,6 +88,11 @@ export class Request<RequestPayload, ResponsePayload, TError> {
           loading: false,
           error: action.error,
           data: !isUndefined(action.payload) ? action.payload : state.data
+        };
+      case this.setInProgressType:
+        return {
+          ...state,
+          loading: action.value
         };
       case this.addActionType:
         const currentState = state as Pagination<WithId<any>>;
